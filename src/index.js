@@ -23,12 +23,17 @@ function verifyIfExistsAccountCPF(request, response, next) {
     return next();
 };
 
-// const getBalance = (statement) => {
-//     let i = json => JSON.parse(json);
-//     const onlyAmount = deposit => deposit.amount;
-    
-//     return statement.map(i).reduce(onlyAmount += onlyAmount)
-// }
+function getBalance(statement) {
+    const balance = statement.reduce((acc, operation) => {
+        if (operation.type === "credit") {
+            return acc + operation.amount;
+        } else {
+            return acc - operation.amount;
+        }
+    }, 0);
+
+    return balance
+}
 
 app.post("/account", (request, response) => {
     const { cpf, name } = request.body;
@@ -129,5 +134,13 @@ app.delete("/account", verifyIfExistsAccountCPF, (request, response) => {
 
     return response.status(200).json(customers);
 });
+
+app.get("/balance", verifyIfExistsAccountCPF, (request, response) => {
+    const { customer } = request;
+
+    const balance = getBalance(customer.statement);
+
+    return response.json(balance);
+})
 
 app.listen(3333);
